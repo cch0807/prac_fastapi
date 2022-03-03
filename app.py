@@ -31,12 +31,22 @@ async def register_item(item:Item):
 
   return JSONResponse(dicted_item)
 
-if __name__ == '__main__':
-  uvicorn.run(app,host='0.0.0.0',port=8000)
-
 @app.put('/update')
 async def update_item(item:Item):
   dicted_item = {k:v for k, v in dict(item).items()}
   dicted_item['success'] = True
 
   return JSONResponse(dicted_item)
+
+@app.patch('/update')
+async def update_item_sub(item: Item):
+  dicted_item = {}
+  for k, v in dict(item).items():
+    if v:
+      dicted_item[k] = v
+  dicted_item['success'] = True
+
+  return JSONResponse(dicted_item)
+
+if __name__ == '__main__':
+  uvicorn.run(app,host='0.0.0.0',port=8000)
