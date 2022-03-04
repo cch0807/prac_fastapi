@@ -1,10 +1,12 @@
 from this import d
-from typing import Optional
-from urllib import response
+from typing import Optional,List
+
 import uvicorn, uuid
 
+from session import get_db,Memo
+from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.requests import Request
 from starlette.responses import JSONResponse
 
@@ -21,7 +23,6 @@ app = FastAPI()
 #     'name': name
 #   })
 
-#POST API
 class Item(BaseModel):
   user_id: str
   password: str
@@ -32,6 +33,15 @@ class ResponseItem(Item):
 class PatchItem(BaseModel):
   user_id: Optional[str]
   password: Optional[str]
+
+class ResponseMemo(BaseModel):
+  id: str
+  title: str
+  content: Optional[str] = None
+  is_favorite: bool
+
+  class Config:
+    orm_mode = True
 
 @app.post('/register')
 async def register_item(item:Item):
@@ -58,10 +68,15 @@ async def update_item_sub(item: Item):
 
   return JSONResponse(dicted_item)
 
-@app.delete('/delete')
-async def delete_item():
-  dicted_item = None
-  return Response(status_code=HTTP_204_NO_CONTENT)
+# @app.delete('/delete')
+# async def delete_item():
+#   dicted_item = None
+#   return Response(status_code=HTTP_204_NO_CONTENT)
+
+@app.get('/memos', response_model= List[ResponseMemo])
+async def get_memos(db:Session = Depends(get_db)):
+  memos = db.query(Memo).all()
+  return memos
 
 if __name__ == '__main__':
   uvicorn.run(app,host='0.0.0.0',port=8000)
