@@ -1,3 +1,4 @@
+from optparse import Option
 from this import d
 from typing import Optional,List
 
@@ -34,11 +35,16 @@ class PatchItem(BaseModel):
   user_id: Optional[str]
   password: Optional[str]
 
+class RequestMemo(BaseModel):
+  title: str
+  content: Optional[str] = None
+  # is_favorite: Optional[bool] = False
+
 class ResponseMemo(BaseModel):
   id: str
   title: str
   content: Optional[str] = None
-  is_favorite: bool
+  # is_favorite: Optional[bool] = False
 
   class Config:
     orm_mode = True
@@ -78,5 +84,12 @@ async def get_memos(db:Session = Depends(get_db)):
   memos = db.query(Memo).all()
   return memos
 
+@app.post('/memos', response_model=ResponseMemo)
+async def register_memo(req: RequestMemo, db: Session = Depends(get_db)):
+  memo = Memo(**req.dict())
+  db.add(memo)
+  db.commit()
+
+  return memo
 if __name__ == '__main__':
   uvicorn.run(app,host='0.0.0.0',port=8000)
